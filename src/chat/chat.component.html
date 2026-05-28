@@ -1,0 +1,128 @@
+<!-- src/app/components/chat/chat.component.html -->
+
+<div class="chat-shell">
+
+  <!-- Header -->
+  <header class="chat-header">
+    <div class="header-left">
+      <div class="logo-mark">G</div>
+      <div class="header-text">
+        <h1>Gemini Chat</h1>
+        <span class="model-badge">{{ modelName }}</span>
+      </div>
+    </div>
+    <button
+      class="btn-ghost"
+      (click)="clearChat()"
+      [disabled]="!gemini.hasMessages()"
+      title="New conversation">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="1 4 1 10 7 10"></polyline>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.51"></path>
+      </svg>
+      New chat
+    </button>
+  </header>
+
+  <!-- API key warning -->
+  @if (apiKeyMissing()) {
+    <div class="api-warning">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>
+        API key not set.
+        <strong>Edit <code>src/environments/environment.ts</code></strong> and add your free key from
+        <a href="https://aistudio.google.com/" target="_blank" rel="noopener">aistudio.google.com</a>
+      </span>
+    </div>
+  }
+
+  <!-- Messages area -->
+  <main class="messages-area">
+
+    <!-- Empty state -->
+    @if (!gemini.hasMessages()) {
+      <div class="empty-state">
+        <div class="empty-icon">✦</div>
+        <h2>What can I help with?</h2>
+        <div class="suggestions">
+          @for (s of suggestions; track s) {
+            <button class="suggestion-chip" (click)="useSuggestion(s)">
+              {{ s }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Message list -->
+    @for (msg of gemini.messages(); track trackById($index, msg)) {
+      <div class="message" [class.user]="msg.role === 'user'" [class.model]="msg.role === 'model'" [class.error]="msg.error">
+        <div class="message-avatar">
+          {{ msg.role === 'user' ? 'U' : 'G' }}
+        </div>
+        <div class="message-content">
+          <div class="message-text" [class.streaming]="msg.isStreaming">{{ msg.text }}</div>
+          @if (msg.isStreaming) {
+            <span class="cursor-blink">▋</span>
+          }
+          <div class="message-time">{{ msg.timestamp | date:'shortTime' }}</div>
+        </div>
+      </div>
+    }
+
+    <!-- Loading dots (initial, before streaming starts) -->
+    @if (gemini.isLoading() && gemini.messages().at(-1)?.text === '') {
+      <div class="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    }
+
+    <div #messagesEnd></div>
+  </main>
+
+  <!-- Error banner -->
+  @if (gemini.error()) {
+    <div class="error-banner">
+      <strong>Error:</strong> {{ gemini.error() }}
+    </div>
+  }
+
+  <!-- Input area -->
+  <footer class="input-area">
+    <div class="input-wrapper">
+      <textarea
+        #textarea
+        [value]="userInput()"
+        (input)="onInput($event)"
+        (keydown)="onKeydown($event)"
+        placeholder="Ask anything… (Enter to send, Shift+Enter for newline)"
+        rows="1"
+        [disabled]="gemini.isLoading() || apiKeyMissing()">
+      </textarea>
+      <button
+        class="send-btn"
+        (click)="send()"
+        [disabled]="!userInput().trim() || gemini.isLoading() || apiKeyMissing()"
+        title="Send message">
+        @if (gemini.isLoading()) {
+          <svg class="spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+        } @else {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        }
+      </button>
+    </div>
+    <p class="footer-note">
+      Free tier: Gemini 2.5 Flash — 10 req/min · 250 req/day · No credit card needed
+    </p>
+  </footer>
+
+</div>

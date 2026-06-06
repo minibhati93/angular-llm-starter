@@ -10,6 +10,12 @@ A small starter project that connects an Angular app to Google's Gemini API and 
 - A simple "hello world" style prompt UI
 - Environment-based Gemini model and API key config
 
+## Demo
+
+https://github.com/user-attachments/assets/d438a887-7ab0-420b-9cc2-c0eccf3f6c54
+
+
+
 ## Quick start
 
 1. Install dependencies:

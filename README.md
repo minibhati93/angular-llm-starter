@@ -1,157 +1,49 @@
-# Angular Gemini Starter 🤖
+# Angular Gemini Hello World
 
-A production-grade Angular 18 chat app powered by Google Gemini — **completely free** using the Gemini API free tier. No credit card required.
+A small starter project that connects an Angular app to Google's Gemini API and streams responses into a simple chat UI.
 
-## Free Tier Summary (as of May 2026)
+## What this starter includes
 
-| Model | RPM | RPD | Notes |
-|-------|-----|-----|-------|
-| `gemini-2.5-flash` | 10 | 250 | ✅ Default — best balance |
-| `gemini-2.5-flash-lite` | 15 | 1,000 | Best for high volume |
-| `gemini-2.5-pro` | 5 | 100 | Most capable, lowest quota |
+- Angular standalone components
+- A `GeminiService` wrapping `@google/generative-ai`
+- Streaming model responses
+- A simple "hello world" style prompt UI
+- Environment-based Gemini model and API key config
 
-> ⚠️ As of April 2026, Pro models (3.x series) are **paid only**. Flash and Flash-Lite remain free.
+## Quick start
 
----
-
-## Quickstart
-
-### 1. Get a FREE Gemini API Key
-
-1. Go to **[aistudio.google.com](https://aistudio.google.com)**
-2. Sign in with your Google account
-3. Click **"Get API key"** → **"Create API key"**
-4. No credit card required ✅
-
-### 2. Clone & Install
+1. Install dependencies:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/angular-gemini-starter.git
-cd angular-gemini-starter
 npm install
 ```
 
-### 3. Add Your Key
+2. Add your Gemini API key in [src/environments/environment.ts](/Users/minibhati/Desktop/personal/angular-llm-starter/src/environments/environment.ts):
 
-Edit `src/environments/environment.ts`:
-
-```typescript
+```ts
 export const environment = {
   production: false,
-  geminiApiKey: 'AIza...',         // ← paste your key here
-  geminiModel: 'gemini-2.5-flash', // free tier model
+  geminiApiKey: 'YOUR_GEMINI_API_KEY_HERE',
+  geminiModel: 'gemini-2.5-flash',
 };
 ```
 
-> 🔐 **Security:** Never commit real keys. For CI/CD, inject via environment variables and use a backend proxy.
-
-### 4. Run
+3. Start the app:
 
 ```bash
 npm start
-# → http://localhost:4200
 ```
 
----
+4. Open `http://localhost:4200`
 
-## Project Structure
+## Main files
 
-```
-src/
-├── app/
-│   ├── components/
-│   │   └── chat/
-│   │       ├── chat.component.ts    ← UI logic (signals, events)
-│   │       ├── chat.component.html  ← Template (Angular 17+ control flow)
-│   │       └── chat.component.scss  ← Styles
-│   ├── services/
-│   │   ├── gemini.service.ts        ← Core LLM wrapper (streaming + signals)
-│   │   └── gemini.service.spec.ts   ← Unit tests
-│   ├── models/
-│   │   └── message.model.ts         ← TypeScript interfaces
-│   ├── app.component.ts
-│   └── app.config.ts
-├── environments/
-│   ├── environment.ts               ← Dev (add your key here)
-│   └── environment.prod.ts          ← Prod (inject via CI)
-└── styles.scss
-```
+- [src/app/app.html](/Users/minibhati/Desktop/personal/angular-llm-starter/src/app/app.html) mounts the starter UI
+- [src/chat/chat.component.ts](/Users/minibhati/Desktop/personal/angular-llm-starter/src/chat/chat.component.ts) handles user input and view behavior
+- [src/chat/chat.component.html](/Users/minibhati/Desktop/personal/angular-llm-starter/src/chat/chat.component.html) renders the starter layout
+- [src/service/gemini.service.ts](/Users/minibhati/Desktop/personal/angular-llm-starter/src/service/gemini.service.ts) manages Gemini chat state and streaming
 
----
+## Notes
 
-## Key Concepts
-
-### Angular Signals (Angular 17+)
-
-This project uses the modern **signals** API instead of RxJS Observables for state management:
-
-```typescript
-// In service
-private _state = signal<ChatState>({ messages: [], isLoading: false, error: null });
-readonly messages = computed(() => this._state().messages);
-
-// In template — automatically reactive
-{{ gemini.isLoading() }}
-```
-
-### Streaming Responses
-
-The Gemini SDK supports streaming. Tokens appear as they're generated:
-
-```typescript
-const result = await this.chat.sendMessageStream(userText);
-
-for await (const chunk of result.stream) {
-  fullText += chunk.text();
-  this.updateMessage(streamingId, { text: fullText });
-}
-```
-
-### Conversation History
-
-Gemini's `startChat()` automatically maintains history internally:
-
-```typescript
-this.chat = this.model.startChat({ history: [] });
-// Each sendMessageStream() call builds on the previous ones
-```
-
----
-
-## Dev Tools
-
-| Tool | Purpose |
-|------|---------|
-| **Angular CLI** (`ng`) | Scaffold, build, serve, test |
-| **Google AI Studio** | Test prompts in browser before coding |
-| **Angular DevTools** (Chrome ext) | Inspect signals, component tree |
-| **Karma + Jasmine** | Unit tests (`npm test`) |
-| **Chrome DevTools Network tab** | Inspect Gemini API requests |
-| **ESLint** | Code quality (`ng lint`) |
-
----
-
-## Switching Models
-
-Edit `src/environments/environment.ts`:
-
-```typescript
-geminiModel: 'gemini-2.5-flash-lite',  // Higher daily quota (1000 RPD)
-geminiModel: 'gemini-2.5-flash',        // Default (250 RPD)
-geminiModel: 'gemini-2.5-pro',          // Most capable (100 RPD)
-```
-
----
-
-## Production Notes
-
-1. **Never expose API keys in the frontend** for production. Use a backend proxy (Node.js/Express, Firebase Functions, etc.) that calls Gemini server-side.
-2. Handle **rate limit errors** (HTTP 429) with exponential backoff.
-3. Add **caching** for repeated queries to preserve daily quota.
-4. Consider **Gemini Flash-Lite** for high-volume or automated workflows.
-
----
-
-## License
-
-MIT
+- This is fine for local development, but a production app should call Gemini from a backend so the API key is not exposed in the browser.
+- The UI shows a warning until you replace the placeholder API key.

@@ -1,13 +1,9 @@
-<!-- src/app/components/chat/chat.component.html -->
-
 <div class="chat-shell">
-
-  <!-- Header -->
   <header class="chat-header">
     <div class="header-left">
       <div class="logo-mark">G</div>
       <div class="header-text">
-        <h1>Gemini Chat</h1>
+        <h1>Angular + Gemini Starter</h1>
         <span class="model-badge">{{ modelName }}</span>
       </div>
     </div>
@@ -24,7 +20,6 @@
     </button>
   </header>
 
-  <!-- API key warning -->
   @if (apiKeyMissing()) {
     <div class="api-warning">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -40,14 +35,14 @@
     </div>
   }
 
-  <!-- Messages area -->
   <main class="messages-area">
-
-    <!-- Empty state -->
     @if (!gemini.hasMessages()) {
       <div class="empty-state">
         <div class="empty-icon">✦</div>
-        <h2>What can I help with?</h2>
+        <h2>Hello world, with AI.</h2>
+        <p class="empty-copy">
+          This Angular starter streams replies from Gemini and gives you a simple base for building chat, copilots, or prompt-driven UI.
+        </p>
         <div class="suggestions">
           @for (s of suggestions; track s) {
             <button class="suggestion-chip" (click)="useSuggestion(s)">
@@ -58,7 +53,6 @@
       </div>
     }
 
-    <!-- Message list -->
     @for (msg of gemini.messages(); track trackById($index, msg)) {
       <div class="message" [class.user]="msg.role === 'user'" [class.model]="msg.role === 'model'" [class.error]="msg.error">
         <div class="message-avatar">
@@ -74,7 +68,6 @@
       </div>
     }
 
-    <!-- Loading dots (initial, before streaming starts) -->
     @if (gemini.isLoading() && gemini.messages().at(-1)?.text === '') {
       <div class="typing-indicator">
         <span></span><span></span><span></span>
@@ -84,14 +77,12 @@
     <div #messagesEnd></div>
   </main>
 
-  <!-- Error banner -->
   @if (gemini.error()) {
     <div class="error-banner">
       <strong>Error:</strong> {{ gemini.error() }}
     </div>
   }
 
-  <!-- Input area -->
   <footer class="input-area">
     <div class="input-wrapper">
       <textarea
@@ -99,7 +90,7 @@
         [value]="userInput()"
         (input)="onInput($event)"
         (keydown)="onKeydown($event)"
-        placeholder="Ask anything… (Enter to send, Shift+Enter for newline)"
+        placeholder="Type a prompt... (Enter to send, Shift+Enter for newline)"
         rows="1"
         [disabled]="gemini.isLoading() || apiKeyMissing()">
       </textarea>
@@ -121,8 +112,7 @@
       </button>
     </div>
     <p class="footer-note">
-      Free tier: Gemini 2.5 Flash — 10 req/min · 250 req/day · No credit card needed
+      Starter flow: add your API key, run the app, send a prompt, and build from there.
     </p>
   </footer>
-
 </div>

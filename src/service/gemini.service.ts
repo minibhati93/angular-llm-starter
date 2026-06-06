@@ -1,6 +1,3 @@
-// src/app/services/gemini.service.ts
-// Core service that wraps the Google Generative AI SDK
-
 import { Injectable, signal, computed } from '@angular/core';
 import {
   GoogleGenerativeAI,
@@ -10,34 +7,44 @@ import {
   type GenerativeModel,
   type ChatSession,
 } from '@google/generative-ai';
-import { environment } from '../../environments/environment';
-import type { Message, ChatState } from '../models/message.model';
+import { environment } from '../environments/environment';
+
+type MessageRole = 'user' | 'model';
+
+export interface Message {
+  id: string;
+  role: MessageRole;
+  text: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+  error?: boolean;
+}
+
+interface ChatState {
+  messages: Message[];
+  isLoading: boolean;
+  error: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class GeminiService {
-
-  // ── Signals (reactive state) ──────────────────────────────────────────────
   private _state = signal<ChatState>({
     messages: [],
     isLoading: false,
     error: null,
   });
 
-  // Public read-only views
-  readonly messages   = computed(() => this._state().messages);
-  readonly isLoading  = computed(() => this._state().isLoading);
-  readonly error      = computed(() => this._state().error);
+  readonly messages = computed(() => this._state().messages);
+  readonly isLoading = computed(() => this._state().isLoading);
+  readonly error = computed(() => this._state().error);
   readonly hasMessages = computed(() => this._state().messages.length > 0);
 
-  // ── Gemini internals ──────────────────────────────────────────────────────
   private model!: GenerativeModel;
   private chat!: ChatSession;
 
   constructor() {
     this.initModel();
   }
-
-  // ── Init ──────────────────────────────────────────────────────────────────
 
   private initModel(): void {
     if (!environment.geminiApiKey || environment.geminiApiKey === 'YOUR_GEMINI_API_KEY_HERE') {
@@ -49,30 +56,25 @@ export class GeminiService {
 
     this.model = genAI.getGenerativeModel({
       model: environment.geminiModel,
-      // Safety settings — adjust as needed for your use case
       safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,       threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
       ],
       generationConfig: {
-        temperature: 0.9,      // Creativity (0 = deterministic, 2 = very creative)
+        temperature: 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 1024,
       },
-      systemInstruction: 'You are a helpful and knowledgeable AI assistant. Be concise, accurate, and friendly.',
+      systemInstruction:
+        'You are a friendly assistant in an Angular hello world starter app. Keep responses concise and helpful.',
     });
 
     this.startNewChat();
   }
 
-  // ── Public API ────────────────────────────────────────────────────────────
-
-  /**
-   * Send a message and stream the response token-by-token.
-   */
   async sendMessage(userText: string): Promise<void> {
     if (!this.model) {
       this.setError('API key not configured. See src/environments/environment.ts');
@@ -85,7 +87,6 @@ export class GeminiService {
     this.setLoading(true);
     this.setError(null);
 
-    // Add placeholder for streaming response
     const streamingId = this.addMessage({ role: 'model', text: '', isStreaming: true });
 
     try {
@@ -93,16 +94,13 @@ export class GeminiService {
 
       let fullText = '';
 
-      // Stream tokens as they arrive
       for await (const chunk of result.stream) {
         const chunkText = chunk.text();
         fullText += chunkText;
         this.updateMessage(streamingId, { text: fullText });
       }
 
-      // Mark streaming complete
       this.updateMessage(streamingId, { isStreaming: false });
-
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       this.updateMessage(streamingId, {
@@ -116,19 +114,24 @@ export class GeminiService {
     }
   }
 
-  /**
-   * Clear history and start a fresh conversation.
-   */
   clearHistory(): void {
     this.startNewChat();
     this._state.set({ messages: [], isLoading: false, error: null });
   }
 
-  // ── Private helpers ───────────────────────────────────────────────────────
-
   private startNewChat(): void {
     if (!this.model) return;
-    this.chat = this.model.startChat({ history: [] });
+    const history: Content[] = [
+      {
+        role: 'user',
+        parts: [{ text: 'Say hello and mention that this starter is powered by Angular and Gemini.' }],
+      },
+      {
+        role: 'model',
+        parts: [{ text: 'Hello! This starter is powered by Angular on the frontend and Gemini for AI responses.' }],
+      },
+    ];
+    this.chat = this.model.startChat({ history });
   }
 
   private addMessage(partial: Partial<Message> & { role: Message['role']; text: string }): string {

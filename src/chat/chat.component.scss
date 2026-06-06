@@ -1,8 +1,3 @@
-// src/app/components/chat/chat.component.scss
-// Aesthetic: Dark terminal meets modern chat. Monospace accents, sharp geometry.
-
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-
 // ── Variables ───────────────────────────────────────────────────────────────
 $bg-base:      #0d0f14;
 $bg-surface:   #141720;
@@ -20,8 +15,8 @@ $success-green:#4fca8e;
 $border:       rgba(255,255,255,0.07);
 $radius:       12px;
 $radius-sm:    8px;
-$font-sans:    'IBM Plex Sans', sans-serif;
-$font-mono:    'IBM Plex Mono', monospace;
+$font-sans:    'Avenir Next', 'Segoe UI', sans-serif;
+$font-mono:    'SFMono-Regular', 'Consolas', monospace;
 
 // ── Shell ───────────────────────────────────────────────────────────────────
 .chat-shell {
@@ -202,6 +197,14 @@ $font-mono:    'IBM Plex Mono', monospace;
     margin: 0;
     letter-spacing: -0.03em;
   }
+}
+
+.empty-copy {
+  max-width: 620px;
+  color: $text-muted;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .suggestions {

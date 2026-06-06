@@ -1,13 +1,11 @@
-// src/app/components/chat/chat.component.ts
-
 import {
   Component, inject, signal, ViewChild, ElementRef,
   AfterViewChecked, OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GeminiService } from '../../services/gemini.service';
-import { environment } from '../../../environments/environment';
+import { GeminiService } from '../service/gemini.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-chat',
@@ -27,12 +25,11 @@ export class ChatComponent implements AfterViewChecked, OnInit {
   modelName = environment.geminiModel;
   apiKeyMissing = signal(false);
 
-  // Suggested prompts for empty state
   suggestions = [
-    'Explain how Angular signals work',
-    'Write a TypeScript utility function for deep cloning',
-    'What are the best practices for Angular services?',
-    'Give me a quick intro to the Gemini API',
+    'Say hello from Angular and Gemini',
+    'Explain this starter project in one paragraph',
+    'Give me 3 beginner Angular project ideas',
+    'What is the Gemini API in simple terms?',
   ];
 
   ngOnInit(): void {
@@ -58,7 +55,6 @@ export class ChatComponent implements AfterViewChecked, OnInit {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    // Submit on Enter (without Shift), allow Shift+Enter for newlines
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.send();
